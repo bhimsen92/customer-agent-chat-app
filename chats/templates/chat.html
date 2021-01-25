@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Welcome to my chat room: {{room}}</h1>
+
+<h2>Messages:</h2>
+<div id="messages">
+
+</div>
+
+<br />
+<form id="message_box">
+    {{ form.hidden_tag() }}
+    <div>
+        {{form.message.label}}: <br />
+        {{form.message(placeholder="Enter your message here", size=32)}}
+    </div>
+    <p>{{form.send()}}</p>
+</form>
+<script type="text/javascript">
+    $(document).ready(function() {
+        let socket = io();
+        let username = "{{username}}", room_id = "{{room_id}}";
+        socket.on("connect", function() {
+            socket.emit("join_room", {
+                "username": username,
+                "room_id": room_id
+            });
+        });
+        socket.on("join_room_announcement", function(data) {
+            let node = $("<div />").html(`<b>${data["username"]}</b> has joined the room.`);
+            $("#messages").append(node);
+        });
+
+        socket.on("receive_message", function(data) {
+            let node = $("<div />").html(`<b>${data["username"]}: </b> ${data["message"]}.`);
+            $("#messages").append(node);
+        });
+
+        $("form#message_box").submit(function(event){
+            let $input = $(this).find("input#message");
+            let value = $input.val();
+            console.log(value);
+            event.preventDefault();
+            socket.emit("send_message", {
+                "username": username,
+                "room_id": room_id,
+                "message": value
+            }, function(ack) {
+                console.log(`message received: ${ack}`);
+                if(ack) {
+                    $input.val("");
+                    $input.focus();
+                }
+            });
+            return false;
+        });
+    });
+</script>
+{% endblock %}

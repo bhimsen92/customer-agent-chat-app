@@ -1,0 +1,16 @@
+Customer - Agent Chat Application
+=================================
+
+- Customer should be able to communicate with an available agent.
+- Customer should be able to communicate without logging in to the application. That is anonymous communication should
+  be possible.
+- Store customer/agent communication for security reasons.
+- Anonymous user should be able to see his past messages based on user cookie/local storage.
+- Agent must be logged in to communicate with the customer.
+- Agent must be able to communicate with at least one customer or at most "n" customers defined by the agent where
+  "n" is greater than 1.
+- Option to reject a customer request by agent. Also termed as "pass".
+- Closing session:
+    - Agent should be able to close the session if both the parties think it can be closed.
+    - Customer can close the session any time.
+- Agent can transfer the chat to other agents. It is needed if agent wants to sign off from the work.
