@@ -14,3 +14,8 @@ Customer - Agent Chat Application
     - Agent should be able to close the session if both the parties think it can be closed.
     - Customer can close the session any time.
 - Agent can transfer the chat to other agents. It is needed if agent wants to sign off from the work.
+
+
+Non Functional Requirements
+===========================
+- Real time updates.

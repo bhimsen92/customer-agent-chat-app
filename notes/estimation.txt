@@ -1,0 +1,14 @@
+Capacity Estimation
+===================
+Let's say we get 100,000 customers using our chat/agent service. Each customer can exchange on average 50 messages per day.
+
+So total messages: 100,000 * 50 = 5,000,000/day
+
+Each message size can be 100 bytes and we want to keep the messages around for at least 12 months.
+
+Total database capacity required per day: 5,000,000 * 100 = 0.465GB/day
+
+Total needed capacity for 12 months: 0.465 * 365 = 170GB/year
+
+Total message bandwidth = 5.65Kb/second.
+
