@@ -5,7 +5,7 @@ from datetime import datetime
 from chats.core import db
 
 
-class Status(enum.Enum):
+class MessageStatus(enum.Enum):
   received = 1
   delivered = 2
   read = 3
@@ -16,9 +16,5 @@ class Message(db.Model):
   user_id = Column(BigInteger, ForeignKey("user.id"))
   conversation_id = Column(BigInteger, ForeignKey("conversation.id"))
   text = Column(Text)
-  status = Column(Enum(Status), default=Status.received)
+  message_status = Column(Enum(MessageStatus), default=MessageStatus.received)
   created_at = Column(DateTime, default=datetime.utcnow)
-
-  # relationships
-  user = relationship("User", back_populates="messages", lazy="dynamic")
-  conversation = relationship("Conversation", back_populates="messages", lazy="dynamic")

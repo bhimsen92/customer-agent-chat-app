@@ -24,12 +24,10 @@ class User(db.Model):
 
 
   # relationships.
-  _agent = relationship("Agent", back_populates="metadata", lazy="dynamic")
-  conversation_assignments = relationship("ConversationAssignment", back_populates="user", lazy="dynamic")
-  messages = relationship("Message", back_populates="user", lazy="dynamic")
+  _agent = relationship("Agent", back_populates="user_metadata", uselist=False, lazy=True)
 
   def __repr__(self):
     return f"user<{self.id}>: {self.email}"
 
   def is_agent(self):
-    return self._is_agent is not None
+    return self._agent is not None

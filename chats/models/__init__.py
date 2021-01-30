@@ -1,5 +1,11 @@
 __all__ = [
-  "Users"
+  "User",
+  "Agent",
+  "Conversation",
+  "ConversationAssignment"
 ]
 
-from .users import Users
+from .user import User
+from .agent import Agent
+from .conversation import Conversation, ConversationAssignment
+from .message import Message
