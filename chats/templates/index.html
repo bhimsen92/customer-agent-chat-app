@@ -1,22 +1,15 @@
 {% extends "base.html" %}
+
+{% block css %}
+    <link href="/static/css/index.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
 {% block content %}
-<h1>My Chat App</h1>
-<form action="/chat" method="POST">
-    {{ form.hidden_tag() }}
-    <div>
-        {{form.username.label}}<br />
-        {{form.username(size=32)}}
-        {% for error in form.username.errors %}
-            <span style="color: red;">[{{error}}]</span>
-        {% endfor %}
+<div>
+    <h1>Please choose:</h1>
+    <div id="links">
+        <a href="/customer">Customer</a>
+        <a href="/agents/login">Agents</a>
     </div>
-    <div>
-        {{form.room_id.label}}<br />
-        {{form.room_id(size=16)}}
-        {% for error in form.room_id.errors %}
-            <span style="color: red;">[{{error}}]</span>
-        {% endfor %}
-    </div>
-    <p>{{form.submit()}}</p>
-</form>
+</div>
 {% endblock %}

@@ -1,0 +1,25 @@
+/customer.html
+  - check if the previous conversation with the user exists.
+  - ask for customer email, phone_number
+  - create a conversation object.
+  - start the websocket
+  - start listening for the events.
+
+/agents/login.html
+  - sign in
+  - on successfull sign in go to /agents/conversations
+
+/agents/signup.html
+  - sign up
+  - on successfull sign up go to /agents/login.html
+
+@logged_in
+/agents/conversations
+  - list all the active conversations.
+  - notify of latest conversation requests.
+
+@logged_in
+/agents/conversations/<conversation_id>
+ - show the chat box.
+ - start communicating with the customer.
+ - also have a logout button.

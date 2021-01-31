@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block css %}
+    <link href="/static/css/signup.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<div>
+    <p><b>New Agent ?</b> Please click here for sign up: <a href="{{sign_up_link}}">Sign Up</a></p>
+    <form id="login-form" action="{{action}}">
+        <fieldset>
+            <p>
+                <label>Name:</label><br />
+                <input type="text" name="name" id="name" placeholder="Please type your name here." required>
+            </p>
+            <p>
+                <label>Email:</label><br />
+                <input type="text" id="email" name="email" placeholder="Please type your email here." required>
+            </p>
+            <button type="submit">Log In</button>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

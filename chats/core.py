@@ -15,9 +15,9 @@ def create_app():
 
 
 def setup_blueprints(app):
-    from chats.view.home import blueprint as home
+    from chats.view.index import blueprint as index
 
-    blueprints = [{"handler": home, "url_prefix": "/"}]
+    blueprints = [{"handler": index, "url_prefix": "/"}]
 
     for bp in blueprints:
         app.register_blueprint(bp["handler"], url_prefix=bp["url_prefix"])

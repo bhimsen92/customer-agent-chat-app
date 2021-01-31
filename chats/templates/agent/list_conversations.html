@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block css %}
+    <link href="/static/css/conversation.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<div>
+    <h2>Active Conversations:</h2>
+    <ol>
+        {% for conversation_id in conversations %}
+            <li>
+                <a href="{{/agents/conversations/{{conversation_id}}">Conversation #{{loop.index}}</a>
+            </li>
+        {% endfor %}
+    </ol>
+</div>
+{% endblock %}

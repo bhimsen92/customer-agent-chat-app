@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block css %}
+    <link href="/static/css/login.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<div>
+    <form id="login-form" action="{{action}}">
+        <fieldset>
+            <p>
+                <label>Name:</label><br />
+                <input type="text" name="name" id="name" placeholder="Please type your name here." required>
+            </p>
+            <p>
+                <label>Email:</label><br />
+                <input type="text" id="email" name="email" placeholder="Please type your email here." required>
+            </p>
+            <button type="submit">Sign Up</button>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

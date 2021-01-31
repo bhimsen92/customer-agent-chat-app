@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block css %}
+    <link href="/static/css/customer.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+    {% if "customer_id" not in data %}
+    <div>
+        <form id="details">
+            <fieldset>
+                <p>
+                    <label>Name:</label><br />
+                    <input type="text" name="name" id="name" placeholder="Please type your name here." required>
+                </p>
+                <p>
+                    <label>Email:</label><br />
+                    <input type="text" id="email" name="email" placeholder="Please type your email here." required>
+                </p>
+                <button type="submit">Submit</button>
+            </fieldset>
+        </form>
+        <div id="details-loader"></div>
+    </div>
+    {% endif %}
+    <div id="chat-box">
+        <div id="messages">
+            <p id="loader">Loading.......</p>
+        </div>
+        <div id="message-input-form">
+            <form>
+                <input type="text" placeholder="Please type your message here." />
+                &nbsp;
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript">
+        let data = {{data}};
+        let customer_id = null, conversation_id = null, customer_name = null;
+
+        // create a socket connection.
+        let socket = io();
+
+        // handle "receive_message"
+        socket.on("receive_message", function(data) {
+            let message = $("<div>").html(`<b>${data["username"]}:</b> ${data["message"]}`);
+            $("#messages").append(message);
+        });
+
+        $(document).ready(function() {
+            $("form#details").submit(function(event) {
+                event.preventDefault();
+                $("#details-loader").html("Initiating conversation....");
+                $("#details fieldset").prop("disabled", true);
+
+                let name = $("#name").val();
+                let email = $("#email").val();
+                // construct the payload and create a conversation object.
+                $.post("/api/customers", {
+                    "username": name,
+                    "email": email
+                }).done(function(data) {
+                    customer_id = data["customer_id"];
+                    socket.emit("start_conversation", {"customer_id": customer_id}, function(response) {
+                        conversation_id = response["conversation_id"];
+                    });
+                });
+            });
+            if(data.hasOwnProperty("customer_id")) {
+                customer_id = data["customer_id"];
+                conversation_id = data["conversation_id"];
+
+                $("#loader").text("Loading messages.....");
+                // load old messages.
+                let promise = fetch(`/api/conversations/${data["conversation_id"]}/messages`, {
+                    method: "GET",
+                    credentials: "include"
+                });
+                promise.then(function(response) {
+                    return response.json();
+                })
+                .then(function(json) {
+                    let messages = [];
+                    for(let i = 0; i < json["items"].length; i++) {
+                        let message = $("<div>").html(`<b>${json[i]["username"]}:</b> ${json[i]["message"]}`);
+                        messages.push(message)
+                    }
+                    $("#messages").html(messages);
+                    $("#chat-box").show();
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+            }
+            $("#message-input-form form").submit(function(event) {
+                event.preventDefault();
+                let $message = $("#message-input-form input");
+                socket.emit("send_message", {
+                    "message": $message.val(),
+                    "conversation_id": conversation_id,
+                    "customer_id": customer_id
+                }, function(response) {
+                    if(response) {
+                        $message.val("");
+                        $message.focus();
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
