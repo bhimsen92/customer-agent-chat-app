@@ -10,6 +10,18 @@ services:
       - database-data:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
-
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_leader
+    volumes:
+      - rabbitmq_data:/data
+    environment:
+        RABBITMQ_ERLANG_COOKIE: "secret-cookie"
+        RABBITMQ_DEFAULT_USER: "admin"
+        RABBITMQ_DEFAULT_PASS: "admin"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
 volumes:
   database-data:
+  rabbitmq_data:
