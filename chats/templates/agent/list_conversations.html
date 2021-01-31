@@ -5,11 +5,13 @@
 
 {% block content %}
 <div>
-    <h2>Active Conversations:</h2>
+    <b>Active Conversations:</b> &nbsp; <a href="/agents/logout">Logout</a>
+    <hr />
+    <br />
     <ol>
         {% for conversation_id in conversations %}
             <li>
-                <a href="{{/agents/conversations/{{conversation_id}}">Conversation #{{loop.index}}</a>
+                <a href="/agents/conversations/{{conversation_id}}">Conversation #{{loop.index}}</a>
             </li>
         {% endfor %}
     </ol>

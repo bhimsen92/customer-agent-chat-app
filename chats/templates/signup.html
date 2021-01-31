@@ -5,17 +5,66 @@
 
 {% block content %}
 <div>
-    <form id="login-form" action="{{action}}">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    <h3>Agent Registration Form</h3>
+    <hr />
+    <br />
+    <form id="sign-up-form" action="{{action}}" method="POST">
+        {{ form.hidden_tag() }}
         <fieldset>
             <p>
-                <label>Name:</label><br />
-                <input type="text" name="name" id="name" placeholder="Please type your name here." required>
+                {{form.name.label}} <br />
+                {{form.name(size=32, placeholder="Please type your name here.")}}
+                {% if form.name.errors %}
+                    <ul class="errors">
+                        {% for error in form.name.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
             </p>
             <p>
-                <label>Email:</label><br />
-                <input type="text" id="email" name="email" placeholder="Please type your email here." required>
+                {{form.email.label}} <br />
+                {{form.email(size=32, placeholder="Please type your email here.")}}
+                {% if form.email.errors %}
+                    <ul class="errors">
+                        {% for error in form.email.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
             </p>
-            <button type="submit">Sign Up</button>
+            <p>
+                {{form.password.label}} <br />
+                {{form.password(size=32, placeholder="Please enter a password.")}}
+                {% if form.password.errors %}
+                    <ul class="errors">
+                        {% for error in form.password.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </p>
+            <p>
+                {{form.confirmPassword.label}} <br />
+                {{form.confirmPassword(size=32, placeholder="Confirm password.")}}
+                {% if form.confirmPassword.errors %}
+                    <ul class="errors">
+                        {% for error in form.confirmPassword.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </p>
+            {{form.submit()}}
         </fieldset>
     </form>
 </div>

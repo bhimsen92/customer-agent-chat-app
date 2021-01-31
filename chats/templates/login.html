@@ -6,17 +6,29 @@
 {% block content %}
 <div>
     <p><b>New Agent ?</b> Please click here for sign up: <a href="{{sign_up_link}}">Sign Up</a></p>
-    <form id="login-form" action="{{action}}">
+    <hr />
+    <br />
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    <form id="login-form" action="{{action}}" method="POST">
+        {{ form.hidden_tag() }}
         <fieldset>
             <p>
-                <label>Name:</label><br />
-                <input type="text" name="name" id="name" placeholder="Please type your name here." required>
+                {{form.email.label}} <br />
+                {{form.email(size=32, placeholder="Please type your email here.")}}
             </p>
             <p>
-                <label>Email:</label><br />
-                <input type="text" id="email" name="email" placeholder="Please type your email here." required>
+                {{form.password.label}} <br />
+                {{form.password(size=32, placeholder="Please enter a password.")}}
             </p>
-            <button type="submit">Log In</button>
+            {{form.submit()}}
         </fieldset>
     </form>
 </div>

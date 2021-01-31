@@ -1,17 +1,34 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms import StringField, SubmitField, PasswordField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from chats.models import User
 
 
-class JoinRoomForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])
-    room_id = StringField("Room ID", validators=[DataRequired()])
+class LoginForm(FlaskForm):
+    email = StringField(
+        "Email", validators=[DataRequired(), Email(message="Not a valid email address")]
+    )
+    password = PasswordField(
+        "Password", validators=[DataRequired(message="Please enter a password")]
+    )
     submit = SubmitField("Submit")
 
-    def validate_room_id(self, field):
-        pass
 
+class SignupForm(FlaskForm):
+    name = StringField("Name", validators=[DataRequired()])
+    email = StringField(
+        "Email", validators=[DataRequired(), Email(message="Not a valid email address")]
+    )
+    password = PasswordField(
+        "Password", validators=[DataRequired(message="Please enter a password")]
+    )
+    confirmPassword = PasswordField(
+        "Repeat Password",
+        validators=[DataRequired(), EqualTo("password", message="Password must match")],
+    )
+    submit = SubmitField("Submit")
 
-class ChatForm(FlaskForm):
-  message = StringField("Message", validators=[DataRequired()])
-  send = SubmitField("Send")
+    def validate_email(self, field):
+        user = User.query.filter_by(email=field.data).first()
+        if user is not None:
+            raise ValidationError("Please use a different email address.")

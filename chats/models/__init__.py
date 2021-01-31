@@ -1,9 +1,4 @@
-__all__ = [
-  "User",
-  "Agent",
-  "Conversation",
-  "ConversationAssignment"
-]
+__all__ = ["User", "Agent", "Conversation", "ConversationAssignment"]
 
 from .user import User
 from .agent import Agent

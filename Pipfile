@@ -14,6 +14,8 @@ flask-sqlalchemy = "*"
 flask-migrate = "*"
 alembic = "*"
 psycopg2-binary = "*"
+email-validator = "*"
+flask-login = "*"
 
 [requires]
 python_version = "3.7"

@@ -4,7 +4,7 @@ from chats.utils.session_utils import get_customer_payload, is_new_customer
 blueprint = Blueprint("customer", __name__)
 
 
-@blueprint.route("/customer", methods=["GET"])
+@blueprint.route("/", methods=["GET"])
 def customer():
     data = {}
     if not is_new_customer():
