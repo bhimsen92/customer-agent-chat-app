@@ -16,6 +16,7 @@ alembic = "*"
 psycopg2-binary = "*"
 email-validator = "*"
 flask-login = "*"
+flask-session = "*"
 
 [requires]
 python_version = "3.7"

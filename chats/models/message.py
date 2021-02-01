@@ -16,5 +16,5 @@ class Message(db.Model):
     user_id = Column(BigInteger, ForeignKey("user.id"))
     conversation_id = Column(BigInteger, ForeignKey("conversation.id"))
     text = Column(Text)
-    message_status = Column(Enum(MessageStatus), default=MessageStatus.received)
+    status = Column(Enum(MessageStatus), default=MessageStatus.received)
     created_at = Column(DateTime, default=datetime.utcnow)

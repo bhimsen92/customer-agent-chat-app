@@ -3,7 +3,7 @@ from flask import g, session
 
 
 def before_request():
-  g.is_user_authenticated = session.get("is_user_authenticated", False)
+    g.is_user_authenticated = session.get("is_user_authenticated", False)
 
 
 if __name__ == "__main__":

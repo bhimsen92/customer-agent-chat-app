@@ -26,8 +26,10 @@ class Agent(db.Model):
     @classmethod
     def create(cls, data):
         from chats.models import User
+        from chats.models.user import Type
 
         try:
+            data["type"] = Type.not_anonymous
             user = User.create(data)
         except exc.IntegrityError:
             user = User.get(email=data["email"])

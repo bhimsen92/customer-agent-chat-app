@@ -3,6 +3,7 @@ from flask.views import MethodView
 from chats.models import User, Agent
 from chats.core import db
 from sqlalchemy import exc
+from chats.utils.session_utils import login_customer
 
 
 class CustomerAPI(MethodView):
@@ -21,19 +22,16 @@ class CustomerAPI(MethodView):
             return self.list_customers()
 
     def post(self):
-        # get request payload.
-        payload = request.get_json()
-        # construct user object. [#TODO needs validation]
-        user = User(email=payload["email"], name=payload["name"])
+        payload = request.get_json()  # TODO needs validation
         try:
-            # store the object.
-            db.session.add(user)
-            db.session.commit()
+            user = User.create(payload)
         except exc.IntegrityError:
             # catch any integrity execeptions and return appropriate messages(return the user_id).
             db.session.rollback()
             user = User.query.filter_by(email=payload["email"]).first()
-        return {"customer_id": user.id}, 200
+        # save
+        login_customer(user)
+        return {"user_id": user.id}, 200
 
     def list_customers(self):
         sq = Agent.query(Agent.id).subquery("sq")

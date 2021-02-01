@@ -48,6 +48,8 @@ class User(db.Model):
         user = cls(name=data["name"], email=data["email"])
         if "password" in data:
             user.set_password(data["password"])
+        if "type" in data:
+            user.type = data["type"]
         db.session.add(user)
         db.session.commit()
         return user
@@ -63,4 +65,5 @@ class User(db.Model):
             "phone_number": self.phone_number,
             "last_active": self.last_active,
             "type": self.type,
+            "created_at": self.created_at,
         }

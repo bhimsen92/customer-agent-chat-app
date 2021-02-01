@@ -19,3 +19,5 @@ Customer - Agent Chat Application
 Non Functional Requirements
 ===========================
 - Real time updates.
+- Deal with customers and agents going offline due to network or other issues. Messages should be pushed to the
+  respective clients once they come back online.

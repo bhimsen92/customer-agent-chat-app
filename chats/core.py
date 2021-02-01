@@ -2,6 +2,7 @@ from flask import Flask
 import chats.default_settings as settings
 from chats.extensions import socket_io, db
 from chats.event_handlers import chat
+from flask_session import Session
 
 
 def create_app():
@@ -11,6 +12,7 @@ def create_app():
     setup_db(app)
     setup_blueprints(app)
     setup_socket_io(app)
+    setup_session(app)
     return app, socket_io
 
 
@@ -33,11 +35,15 @@ def setup_blueprints(app):
 
 def setup_socket_io(app):
     socket_io.init_app(app)
-    socket_io.on_event("join_room", chat.handle_join_room)
     socket_io.on_event("send_message", chat.handle_send_message)
+    socket_io.on_event("start_conversation", chat.start_conversation)
     return socket_io
 
 
 def setup_db(app):
     db.app = app
     db.init_app(app)
+
+
+def setup_session(app):
+    Session(app)

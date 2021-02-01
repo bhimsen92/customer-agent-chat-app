@@ -6,7 +6,7 @@
 {% block content %}
     {% if "customer_id" not in data %}
     <div>
-        <h3 id="header-message">Please provide details to begin chatting with one of our agents.</h3>
+        <b id="header-message">Please provide details to begin chatting with one of our agents.</b>
         <hr />
         <br />
         <form id="details">
@@ -31,24 +31,33 @@
         </div>
         <div id="message-input-form">
             <form>
-                <input type="text" placeholder="Please type your message here." />
-                &nbsp;
-                <button type="submit">Send</button>
+                <fieldset>
+                    <input style="height:25px;"
+                           type="text" placeholder="Please type your message here." size="40" required />
+                    <button type="submit">Send</button> &nbsp; <button type="button">Done</button>
+                </fieldset>
             </form>
         </div>
     </div>
     <script type="text/javascript">
-        let data = {{data}};
-        let customer_id = null, conversation_id = null, customer_name = null;
+        function setup_receive_message(socket) {
+            // handle "receive_message"
+            socket.on("receive_message", function(data) {
+                let message = $("<div>").html(`<b>${data["name"]}:</b> ${data["message"]}`);
+                $("#messages").append(message);
+            });
+        }
+
+        function setup_socket_object() {
+            let socket = io("ws://localhost:5000", {transports: ['websocket']});
+            return socket;
+        }
+
+        let data = {{data | tojson | safe}};
+        let user_id = null, conversation_id = null, name = null;
 
         // create a socket connection.
-        let socket = io();
-
-        // handle "receive_message"
-        socket.on("receive_message", function(data) {
-            let message = $("<div>").html(`<b>${data["username"]}:</b> ${data["message"]}`);
-            $("#messages").append(message);
-        });
+        let socket = null;
 
         $(document).ready(function() {
             $("form#details").submit(function(event) {
@@ -59,21 +68,45 @@
                 let name = $("#name").val();
                 let email = $("#email").val();
                 // construct the payload and create a conversation object.
-                $.post("/api/customers", {
-                    "username": name,
-                    "email": email
+                $.ajax({
+                    "url": "/api/customers",
+                    "type": "post",
+                    "dataType": "json",
+                    "contentType": "application/json",
+                    "data": JSON.stringify({"name": name, "email": email})
                 }).done(function(data) {
-                    customer_id = data["customer_id"];
-                    socket.emit("start_conversation", {"customer_id": customer_id}, function(response) {
-                        conversation_id = response["conversation_id"];
-                    });
+                    user_id = data["user_id"];
+                    socket = setup_socket_object();
+                    setup_receive_message(socket);
+                    socket.emit(
+                        "start_conversation",
+                         {
+                            "user_id": user_id,
+                             "is_customer": true
+                         },
+                         function(response) {
+                            conversation_id = response["conversation_id"];
+                            $("#details-loader").hide();
+                            $("#details").hide();
+                            $("#details fieldset").prop("disabled", false);
+                            $("#chat-box").show();
+                            $("#loader").text("Searching for agent.....");
+                         });
                 });
             });
-            if(data.hasOwnProperty("customer_id")) {
-                customer_id = data["customer_id"];
+            if(data.hasOwnProperty("user_id")) {
+                user_id = data["user_id"];
                 conversation_id = data["conversation_id"];
 
+                socket = setup_socket_object();
+                setup_receive_message(socket);
+
+                $("#details-loader").hide();
+                $("#details").hide();
+                $("#message-input-form fieldset").prop("disabled", true);
                 $("#loader").text("Loading messages.....");
+                $("#chat-box").show();
+
                 // load old messages.
                 let promise = fetch(`/api/conversations/${data["conversation_id"]}/messages`, {
                     method: "GET",
@@ -85,10 +118,11 @@
                 .then(function(json) {
                     let messages = [];
                     for(let i = 0; i < json["items"].length; i++) {
-                        let message = $("<div>").html(`<b>${json[i]["username"]}:</b> ${json[i]["message"]}`);
+                        let message = $("<div>").html(`<b>${json[i]["name"]}:</b> ${json[i]["message"]}`);
                         messages.push(message)
                     }
                     $("#messages").html(messages);
+                    $("#message-input-form fieldset").prop("disabled", false);
                     $("#chat-box").show();
                 })
                 .catch(function(error) {
@@ -101,9 +135,10 @@
                 socket.emit("send_message", {
                     "message": $message.val(),
                     "conversation_id": conversation_id,
-                    "customer_id": customer_id
+                    "user_id": user_id
                 }, function(response) {
                     if(response) {
+                        // add user message.
                         $message.val("");
                         $message.focus();
                     }
