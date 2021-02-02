@@ -21,3 +21,16 @@ Non Functional Requirements
 - Real time updates.
 - Deal with customers and agents going offline due to network or other issues. Messages should be pushed to the
   respective clients once they come back online.
+
+Todos:
+=====
+- dealing with web app crashes:
+    - what happens to all the sockets stored there.
+    - what happens to the messages that are scheduled to be received by the machine.
+- when all agents are busy.
+- when agent loses connection.
+- when customer loses connection.
+- lot of customers and few agents.
+- read/delivered receipts.
+- notifications.
+- user typing notifications.

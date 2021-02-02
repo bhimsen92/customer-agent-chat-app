@@ -18,69 +18,54 @@
 </div>
 <script type="text/javascript">
     let data = {{data}};
-    let customer_id = null, conversation_id = null, customer_name = null;
+    let user_id = null, conversation_id = null, customer_name = null;
 
     // create a socket connection.
     let socket = io();
 
     // handle "receive_message"
-    socket.on("receive_message", function(data) {
-        let message = $("<div>").html(`<b>${data["username"]}:</b> ${data["message"]}`);
+    socket.on("receive_message", function(payload) {
+        let data = payload["data"];
+        let message = $("<div>").html(`<b>${data["name"]}:</b> ${data["message"]}`);
         $("#messages").append(message);
     });
 
     $(document).ready(function() {
-        $("form#details").submit(function(event) {
-            event.preventDefault();
-            $("#details-loader").html("Initiating conversation....");
-            $("#details fieldset").prop("disabled", true);
+        user_id = data["user_id"];
+        conversation_id = data["conversation_id"];
 
-            let name = $("#name").val();
-            let email = $("#email").val();
-            // construct the payload and create a conversation object.
-            $.post("/api/customers", {
-                "username": name,
-                "email": email
-            }).done(function(data) {
-                customer_id = data["customer_id"];
-                socket.emit("start_conversation", {"customer_id": customer_id}, function(response) {
-                    conversation_id = response["conversation_id"];
-                });
-            });
+        $("#loader").text("Loading messages.....");
+        // load old messages.
+        let promise = fetch(`/api/conversations/${data["conversation_id"]}/messages`, {
+            method: "GET",
+            credentials: "include"
         });
-        if(data.hasOwnProperty("customer_id")) {
-            customer_id = data["customer_id"];
-            conversation_id = data["conversation_id"];
-
-            $("#loader").text("Loading messages.....");
-            // load old messages.
-            let promise = fetch(`/api/conversations/${data["conversation_id"]}/messages`, {
-                method: "GET",
-                credentials: "include"
-            });
-            promise.then(function(response) {
-                return response.json();
-            })
-            .then(function(json) {
-                let messages = [];
-                for(let i = 0; i < json["items"].length; i++) {
-                    let message = $("<div>").html(`<b>${json[i]["username"]}:</b> ${json[i]["message"]}`);
-                    messages.push(message)
-                }
-                $("#messages").html(messages);
-                $("#chat-box").show();
-            })
-            .catch(function(error) {
-                console.log(error);
-            });
-        }
+        promise.then(function(response) {
+            return response.json();
+        })
+        .then(function(json) {
+            let messages = [];
+            for(let i = 0; i < json["items"].length; i++) {
+                let message = $("<div>").html(`<b>${json[i]["username"]}:</b> ${json[i]["message"]}`);
+                messages.push(message)
+            }
+            $("#messages").html(messages);
+            $("#chat-box").show();
+        })
+        .catch(function(error) {
+            console.log(error);
+        });
         $("#message-input-form form").submit(function(event) {
             event.preventDefault();
             let $message = $("#message-input-form input");
             socket.emit("send_message", {
-                "message": $message.val(),
-                "conversation_id": conversation_id,
-                "customer_id": customer_id
+                "event_type": "send_message",
+                "data": {
+                    "message": $message.val(),
+                    "conversation_id": conversation_id,
+                    "user_id": user_id,
+                    "is_agent": true
+                },
             }, function(response) {
                 if(response) {
                     $message.val("");

@@ -92,7 +92,7 @@ def agent_list_conversations():
             and_(
                 conversation.c.status == ConversationStatus.active,
                 conversation_assignment.c.user_id == g.user.id,
-                conversation_assignment.c.status == ConversationStatus.active
+                conversation_assignment.c.status == ConversationStatus.active,
             )
         )
     )
@@ -102,5 +102,9 @@ def agent_list_conversations():
 
 @blueprint.route("/conversations/<conversation_id>", methods=["GET",])
 @login_required
-def agent_conversation():
-    return render_template("/agent/conversation.html")
+def agent_conversation(conversation_id):
+    data = {
+        "conversation_id": conversation_id,
+        "user_id": g.user.id,
+    }
+    return render_template("/agent/conversation.html", data=data)

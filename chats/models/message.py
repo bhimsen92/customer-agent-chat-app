@@ -18,3 +18,14 @@ class Message(db.Model):
     text = Column(Text)
     status = Column(Enum(MessageStatus), default=MessageStatus.received)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    @classmethod
+    def create(cls, payload):
+        message = cls(
+            user_id=payload["user_id"],
+            conversation_id=payload["conversation_id"],
+            text=payload["message"],
+        )
+        db.session.add(message)
+        db.session.commit()
+        return message

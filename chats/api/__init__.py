@@ -82,7 +82,11 @@ def assign_agent():
     # verify that the current conversation has no active assignment.
     query = (
         select([conversation_assignment.c.user_id])
-        .select_from(conversation_assignment.join(agent, conversation_assignment.c.user_id == agent.c.user_id))
+        .select_from(
+            conversation_assignment.join(
+                agent, conversation_assignment.c.user_id == agent.c.user_id
+            )
+        )
         .where(
             and_(
                 conversation_assignment.c.conversation_id == conversation_id,

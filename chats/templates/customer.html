@@ -43,7 +43,8 @@
     <script type="text/javascript">
         function setup_receive_message(socket) {
             // handle "receive_message"
-            socket.on("receive_message", function(data) {
+            socket.on("receive_message", function(payload) {
+                let data = data["data"];
                 let message = $("<div>").html(`<b>${data["name"]}:</b> ${data["message"]}`);
                 $("#messages").append(message);
             });
@@ -134,9 +135,13 @@
                 event.preventDefault();
                 let $message = $("#message-input-form input");
                 socket.emit("send_message", {
-                    "message": $message.val(),
-                    "conversation_id": conversation_id,
-                    "user_id": user_id
+                    "event_type": "send_message",
+                    "data": {
+                        "message": $message.val(),
+                        "conversation_id": conversation_id,
+                        "user_id": user_id,
+                        "is_customer": true
+                    }
                 }, function(response) {
                     if(response) {
                         // add user message.
