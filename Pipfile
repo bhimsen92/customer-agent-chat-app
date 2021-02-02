@@ -17,6 +17,7 @@ psycopg2-binary = "*"
 email-validator = "*"
 flask-login = "*"
 flask-session = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"

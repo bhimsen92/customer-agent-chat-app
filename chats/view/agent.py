@@ -1,7 +1,16 @@
 from flask import Blueprint, request, render_template, redirect, url_for, g, flash
 from chats.forms import SignupForm, LoginForm
-from chats.models import Agent, User
+from chats.models import (
+    Agent,
+    User,
+    ConversationAssignment,
+    conversation,
+    conversation_assignment,
+)
 from chats.utils.session_utils import login_agent, logout, login_required
+from sqlalchemy.sql import select, and_
+from chats.models.conversation import ConversationStatus
+from chats.core import db
 
 blueprint = Blueprint("agent", __name__)
 
@@ -16,6 +25,8 @@ def agent_login():
         user = User.get(email=form.email.data)
         if user and user.is_agent() and user.check_password(form.password.data):
             login_agent(user)
+            # mark agent as available.
+            Agent.mark_agent_as_available_by_use_id(user.id)
             return redirect(url_for("agent.agent_list_conversations"))
         elif user is None or not user.check_password(form.password.data):
             flash("Invalid email or password.")
@@ -34,6 +45,11 @@ def agent_login():
 @blueprint.route("/logout", methods=["GET",])
 @login_required
 def agent_logout():
+    # do all these in the background. raise "agent_logout" event.
+    # also check if conversations are still active. If so raise "assign_agent" event.
+    Agent.mark_agent_as_not_available_by_use_id(g.user.id)
+    # mark where agent is part of a conversation as closed.
+    ConversationAssignment.mark_assignment_as_closed_by_user_id(g.user.id)
     logout(g.user)
     return redirect(url_for("home.index"))
 
@@ -63,7 +79,24 @@ def agent_sign_up():
 @blueprint.route("/conversations", methods=["GET",])
 @login_required
 def agent_list_conversations():
-    return render_template("agent/list_conversations.html")
+    # get all the conversation ids where current user is assigned which is active, idle
+    query = (
+        select([conversation.c.id])
+        .select_from(
+            conversation.join(
+                conversation_assignment,
+                conversation.c.id == conversation_assignment.c.conversation_id,
+            )
+        )
+        .where(
+            and_(
+                conversation.c.status == ConversationStatus.active,
+                conversation_assignment.c.user_id == g.user.id,
+            )
+        )
+    )
+    result = db.session.execute(query)
+    return render_template("agent/list_conversations.html", conversations=result)
 
 
 @blueprint.route("/conversations/<conversation_id>", methods=["GET",])

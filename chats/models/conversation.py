@@ -27,6 +27,14 @@ class Conversation(db.Model):
         db.session.commit()
         return conversation
 
+    @classmethod
+    def mark_conversation_as_closed(cls, conversation_id):
+        conversation = cls.query.filter_by(id=conversation_id).first()
+        if conversation:
+            conversation.status = ConversationStatus.closed
+        db.session.add(conversation)
+        db.session.commit()
+
     def serialize(self):
         return {
             "id": self.id,
@@ -56,3 +64,17 @@ class ConversationAssignment(db.Model):
         db.session.add(assignment)
         db.session.commit()
         return assignment
+
+    @classmethod
+    def mark_assignments_as_closed(cls, conversation_id):
+        cls.query.filter_by(conversation_id=conversation_id).update(
+            {ConversationAssignment.status: ConversationStatus.closed}
+        )
+        db.session.commit()
+
+    @classmethod
+    def mark_assignment_as_closed_by_user_id(cls, user_id):
+        cls.query.filter_by(user_id=user_id).update(
+            {ConversationAssignment.status: ConversationStatus.closed}
+        )
+        db.session.commit()

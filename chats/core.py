@@ -24,7 +24,7 @@ def setup_blueprints(app):
 
     blueprints = [
         {"handler": index, "url_prefix": "/"},
-        {"handler": customer, "url_prefix": "/customer"},
+        {"handler": customer, "url_prefix": "/customers"},
         {"handler": api, "url_prefix": "/api"},
         {"handler": agent, "url_prefix": "/agents"},
     ]

@@ -9,9 +9,9 @@
     <hr />
     <br />
     <ol>
-        {% for conversation_id in conversations %}
+        {% for conversation in conversations %}
             <li>
-                <a href="/agents/conversations/{{conversation_id}}">Conversation #{{loop.index}}</a>
+                <a href="/agents/conversations/{{conversation.id}}">Conversation #{{loop.index}}</a>
             </li>
         {% endfor %}
     </ol>

@@ -34,7 +34,8 @@
                 <fieldset>
                     <input style="height:25px;"
                            type="text" placeholder="Please type your message here." size="40" required />
-                    <button type="submit">Send</button> &nbsp; <button type="button">Done</button>
+                    <button type="submit">Send</button> &nbsp;
+                    <button id="customer-logout" type="button">Close chat!</button>
                 </fieldset>
             </form>
         </div>
@@ -143,6 +144,12 @@
                         $message.focus();
                     }
                 });
+            });
+            $("#customer-logout").click(function(event) {
+                event.preventDefault();
+                $("#message-input-form fieldset").prop("disabled", true);
+                // simulate clicking on customer-logout button.
+                window.location.href = "{{customer_logout_link}}";
             });
         });
     </script>
