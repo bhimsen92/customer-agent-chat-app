@@ -92,6 +92,7 @@ def agent_list_conversations():
             and_(
                 conversation.c.status == ConversationStatus.active,
                 conversation_assignment.c.user_id == g.user.id,
+                conversation_assignment.c.status == ConversationStatus.active
             )
         )
     )
