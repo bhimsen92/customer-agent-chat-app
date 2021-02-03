@@ -4,9 +4,8 @@
 {% endblock %}
 
 {% block content %}
-<b id="header-message">Customer - Agent Chat Application.</b>
+<b id="header-message">Customer - Agent Chat Application. <span id="notifications"></span></b>
 <hr />
-<br />
 <div id="chat-box">
     <div id="messages">
         <p id="loader">Loading.......</p>
@@ -23,10 +22,10 @@
 </div>
 <script type="text/javascript">
     let data = {{data | tojson | safe}};
-    let user_id = null, conversation_id = null, name = data["name"];
+    let user_id = null, conversation_id = null, name = data["name"], is_active = data["is_active"];
 
     // create a socket connection.
-    let socket = io();
+    let socket = io(`ws://${window.location.host}`, {transports: ['websocket']});
 
     // handle "receive_message"
     socket.on("receive_message", function(payload) {
@@ -34,6 +33,11 @@
         let message = $("<div>").html(`<b>${data["name"]}:</b> ${data["message"]}`);
         $("#messages").append(message);
     });
+
+    if(!is_active) {
+        $("#notifications").html(" <i>(Conversation is no longer active.)</i>");
+        $("#message-input-form fieldset").prop("disabled", true);
+    }
 
     // initiate agent handshake.
     socket.emit("agent_handshake", {
@@ -85,6 +89,11 @@
             }, function(response) {
                 if(response) {
                     let data = response.data;
+                    if(response.event_type == "message_error" && data.code == 1) {
+                        $("#notifications").html(`<i>(${data.description})</i>`);
+                        $("#message-input-form fieldset").prop("disabled", true);
+                        return;
+                    }
                     let message = $("<div>").html(`<b>${name}:</b> ${data["message"]}`);
                     $("#messages").append(message);
                     $message.val("");

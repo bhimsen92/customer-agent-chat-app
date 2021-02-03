@@ -75,10 +75,26 @@ def customer_handshake(payload):
     return True
 
 
+def is_conversation_active(conversation_id):
+  conversation = Conversation.query.filter_by(id=conversation_id).first()
+  if conversation and conversation.status == ConversationStatus.active:
+    return True
+  else:
+    return False
+
+
 def handle_send_message(payload):
     from chats.core import rabbitmq
-    current_app.logger.info(f"send_message: ${payload}")
     payload = payload["data"]
+
+    if not is_conversation_active(payload["conversation_id"]):
+      return {
+        "event_type": "message_error",
+        "data": {
+          "code": 1,
+          "description": "Conversation is no longer active."
+        }
+      }
 
     message = save_message(payload)
     payload["message_id"] = message.id

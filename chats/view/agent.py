@@ -4,6 +4,7 @@ from chats.models import (
     Agent,
     User,
     ConversationAssignment,
+    Conversation,
     conversation,
     conversation_assignment,
 )
@@ -108,5 +109,7 @@ def agent_conversation(conversation_id):
         "user_id": g.user.id,
     }
     user = User.query.filter_by(id=data["user_id"]).first()
+    conversation = Conversation.query.filter_by(id=conversation_id).first()
     data["name"] = user.name
+    data["is_active"] = conversation.status == ConversationStatus.active
     return render_template("/agent/conversation.html", data=data)

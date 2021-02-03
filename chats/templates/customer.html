@@ -66,7 +66,7 @@
         }
 
         function setup_socket_object() {
-            let socket = io("ws://localhost:5000", {transports: ['websocket']});
+            let socket = io(`ws://${window.location.host}`, {transports: ['websocket']});
             return socket;
         }
 
