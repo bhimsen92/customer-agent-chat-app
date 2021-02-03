@@ -1,6 +1,7 @@
 from collections import defaultdict
 from threading import Thread
 import pika
+import json
 
 
 class Rabbitmq:
@@ -13,21 +14,25 @@ class Rabbitmq:
 
     def _setup_message_bus_queue(self, channel):
         # if the queue does not exist
-        channel.queue_declare(queue=self.app.config["HOSTNAME"])
+        channel.queue_declare(queue=self.app.config["HOSTNAME"], durable=True)
         # bind it with message_bus exchange.
         channel.queue_bind(
             exchange=self.app.config["RABBITMQ_PUBSUB_EXCHANGE"],
             queue=self.app.config["HOSTNAME"],
         )
 
+    def _get_connection(self):
+      credentials = pika.PlainCredentials(
+        self.app.config["RABBITMQ_USER"], self.app.config["RABBITMQ_PASSWORD"]
+      )
+      parameters = pika.ConnectionParameters(
+        self.app.config["RABBITMQ_HOST"], self.app.config["RABBITMQ_PORT"], "/", credentials
+      )
+      connection = pika.BlockingConnection(parameters)
+      return connection
+
     def init_app(self, app):
-        credentials = pika.PlainCredentials(
-            app.config["RABBITMQ_USER"], app.config["RABBITMQ_PASSWORD"]
-        )
-        parameters = pika.ConnectionParameters(
-            app.config["RABBITMQ_HOST"], app.config["RABBITMQ_PORT"], "/", credentials
-        )
-        self.connection = pika.BlockingConnection(parameters)
+        self.app = app
 
         # start listening on message bus exchange.
         thread = Thread(
@@ -41,8 +46,9 @@ class Rabbitmq:
         self.callbacks[event_type].append(callback)
 
     def publish_message(self, payload):
+        connection = self._get_connection()
         # publish message to event bus.
-        channel = self.connection.channel()
+        channel = connection.channel()
         # setup queue if not already setup.
         self._setup_message_bus_queue(channel)
 
@@ -50,35 +56,47 @@ class Rabbitmq:
         channel.basic_publish(
             exchange=self.app.config["RABBITMQ_PUBSUB_EXCHANGE"],
             routing_key="",
-            body=payload,
+            body=json.dumps(payload),
             properties=pika.BasicProperties(
                 delivery_mode=2,  # make message persistent
             ),
         )
         channel.close()
+        connection.close()
 
     def enqueue_background_task(self, payload):
+        connection = self._get_connection()
         # publish message to "background_tasks" event queue.
         # event_type should be used as routing key.
-        channel = self.connection.channel()
+        channel = connection.channel()
 
         # publish message
         channel.basic_publish(
             exchange=self.app.config["RABBITMQ_PUBSUB_BACKGROUND_TASKS_EXCHANGE"],
             routing_key=payload["event_type"],
-            body=payload,
+            body=json.dumps(payload),
             properties=pika.BasicProperties(
                 delivery_mode=2,  # make message persistent
             ),
         )
         channel.close()
+        connection.close()
 
     def _handle_message_bus_events(self, ch, method, properties, body):
+        body = json.loads(body)
         print("message: ", body)
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        callbacks = self.callbacks[body["event_type"]]
+        try:
+          for callback in callbacks:
+            callback(body["data"])
+          ch.basic_ack(delivery_tag=method.delivery_tag)
+        except Exception as e:
+          pass
 
     def _listen_for_events_on_message_bus(self):
-        channel = self.connection.channel()
+        connection = self._get_connection()
+
+        channel = connection.channel()
 
         # setup queue if not already setup.
         self._setup_message_bus_queue(channel)

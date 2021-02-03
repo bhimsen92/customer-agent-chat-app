@@ -15,6 +15,8 @@ def customer():
     data = {}
     if not is_new_customer():
         data = get_customer_payload()
+        user = User.query.filter_by(id=data["user_id"]).first()
+        data["name"] = user.name
     return render_template(
         "customer.html",
         data=data,

@@ -34,3 +34,4 @@ Todos:
 - read/delivered receipts.
 - notifications.
 - user typing notifications.
+- handle scenario where customer has closed the chat.

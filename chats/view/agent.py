@@ -28,7 +28,7 @@ def agent_login():
             # mark agent as available.
             Agent.mark_agent_as_available_by_use_id(user.id)
             return redirect(url_for("agent.agent_list_conversations"))
-        elif user is None or not user.check_password(form.password.data):
+        elif user is None or (user.is_agent() and not user.check_password(form.password.data)):
             flash("Invalid email or password.")
             return redirect(url_for("agent.agent_login"))
         elif not user.is_agent():
@@ -107,4 +107,6 @@ def agent_conversation(conversation_id):
         "conversation_id": conversation_id,
         "user_id": g.user.id,
     }
+    user = User.query.filter_by(id=data["user_id"]).first()
+    data["name"] = user.name
     return render_template("/agent/conversation.html", data=data)

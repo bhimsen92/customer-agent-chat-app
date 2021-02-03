@@ -29,6 +29,7 @@
         <div id="messages">
             <p id="loader">Loading.......</p>
         </div>
+        <br />
         <div id="message-input-form">
             <form>
                 <fieldset>
@@ -44,9 +45,23 @@
         function setup_receive_message(socket) {
             // handle "receive_message"
             socket.on("receive_message", function(payload) {
-                let data = data["data"];
+                let data = payload["data"];
                 let message = $("<div>").html(`<b>${data["name"]}:</b> ${data["message"]}`);
                 $("#messages").append(message);
+                $("#loader").hide();
+            });
+        }
+
+        function begin_customer_handshake(socket) {
+            // initiate agent handshake.
+            socket.emit("customer_handshake", {
+                "event_type": "customer_handshake",
+                "data": {
+                    "user_id": data["user_id"],
+                    "conversation_id": data["conversation_id"]
+                }
+            }, function(response) {
+                console.log(response);
             });
         }
 
@@ -67,8 +82,9 @@
                 $("#details-loader").html("Initiating conversation....");
                 $("#details fieldset").prop("disabled", true);
 
-                let name = $("#name").val();
+                name = $("#name").val();
                 let email = $("#email").val();
+
                 // construct the payload and create a conversation object.
                 $.ajax({
                     "url": "/api/customers",
@@ -99,9 +115,11 @@
             if(data.hasOwnProperty("user_id")) {
                 user_id = data["user_id"];
                 conversation_id = data["conversation_id"];
+                name = data["name"];
 
                 socket = setup_socket_object();
                 setup_receive_message(socket);
+                begin_customer_handshake(socket);
 
                 $("#details-loader").hide();
                 $("#details").hide();
@@ -120,7 +138,7 @@
                 .then(function(json) {
                     let messages = [];
                     for(let i = 0; i < json["items"].length; i++) {
-                        let message = $("<div>").html(`<b>${json[i]["name"]}:</b> ${json[i]["message"]}`);
+                        let message = $("<div>").html(`<b>${json["items"][i]["name"]}:</b> &nbsp; ${json["items"][i]["text"]}`);
                         messages.push(message)
                     }
                     $("#messages").html(messages);
@@ -145,6 +163,9 @@
                 }, function(response) {
                     if(response) {
                         // add user message.
+                        let data = response.data;
+                        let message = $("<div>").html(`<b>${name}:</b> ${data["message"]}`);
+                        $("#messages").append(message);
                         $message.val("");
                         $message.focus();
                     }

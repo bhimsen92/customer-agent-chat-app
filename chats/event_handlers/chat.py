@@ -1,14 +1,14 @@
 from flask import current_app, request, session
-from flask_socketio import join_room, emit
+from flask_socketio import emit
 from chats.utils.session_utils import (
     save_conversation_id,
     is_new_conversation,
     get_current_conversation_id,
+    get_customer_payload,
 )
 from chats.models import Conversation, ConversationAssignment, Message, User
 from chats.models.conversation import ConversationStatus
 from chats.extensions import save_socket, get_socket
-from chats.core import rabbitmq
 
 
 def get_active_users_in_conversation(conversation_id):
@@ -20,18 +20,18 @@ def get_active_users_in_conversation(conversation_id):
 
 def get_receiver_key(user_id, conversation_id):
     active_user_ids = get_active_users_in_conversation(conversation_id)
-    receiver_id = set(active_user_ids) - {
+    receiver_id, = set(active_user_ids) - {
         user_id,
     }
     if receiver_id:
         return "%s-%s" % (receiver_id, conversation_id), receiver_id
-    return None
+    return None, None
 
 
-def emit_message_to_client(key, receiver_id, message_id, message):
+def emit_message_to_client(key, sender_id, message_id, message):
     socket = get_socket(key)
     if socket:
-        user = User.query.filter_by(id=receiver_id).first()
+        user = User.query.filter_by(id=sender_id).first()
         emit(
             "receive_message",
             {
@@ -51,16 +51,34 @@ def save_message(payload):
     return message
 
 
+# rabbitmq event.
 def handle_receive_message(payload):
     receiver_key, receiver_id = get_receiver_key(
         payload["user_id"], payload["conversation_id"]
     )
     if receiver_key:
-        emit_message_to_client(receiver_key, receiver_id, payload["message"])
+        emit_message_to_client(receiver_key, payload["user_id"], payload["message"])
+
+
+def agent_handshake(payload):
+    data = payload["data"]
+    key = "%s-%s" % (data["user_id"], data["conversation_id"])
+    save_socket(key, request.sid)
+    return True
+
+
+def customer_handshake(payload):
+    data = get_customer_payload()
+    print(payload)
+    key = "%s-%s" % (data["user_id"], data["conversation_id"])
+    save_socket(key, request.sid)
+    return True
 
 
 def handle_send_message(payload):
+    from chats.core import rabbitmq
     current_app.logger.info(f"send_message: ${payload}")
+    payload = payload["data"]
 
     message = save_message(payload)
     payload["message_id"] = message.id
@@ -70,7 +88,7 @@ def handle_send_message(payload):
     )
     if receiver_key:
         emit_message_to_client(
-            receiver_key, receiver_id, message.id, payload["message"]
+            receiver_key, payload["user_id"], message.id, payload["message"]
         )
     else:
         rabbitmq.publish_message(
@@ -84,10 +102,19 @@ def handle_send_message(payload):
                 },
             }
         )
-    return True
+    return {
+        "event_type": "message",
+        "data": {
+            "message": message.text,
+            "message_id": message.id,
+            "user_id": payload["user_id"],
+            "conversation_id": payload["conversation_id"],
+        },
+    }
 
 
 def start_conversation(payload):
+    from chats.core import rabbitmq
     current_app.logger.info(f"start_conversation: ${payload}")
     if not is_new_conversation():
         return {"conversation_id": get_current_conversation_id()}

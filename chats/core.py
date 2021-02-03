@@ -39,11 +39,14 @@ def setup_socket_io(app):
     socket_io.init_app(app)
     socket_io.on_event("send_message", chat.handle_send_message)
     socket_io.on_event("start_conversation", chat.start_conversation)
+    socket_io.on_event("agent_handshake", chat.agent_handshake)
+    socket_io.on_event("customer_handshake", chat.customer_handshake)
     return socket_io
 
 
 def setup_rabbitmq(app):
     rabbitmq.init_app(app)
+    rabbitmq.register_callback("receive_message", chat.handle_receive_message)
 
 
 def setup_db(app):

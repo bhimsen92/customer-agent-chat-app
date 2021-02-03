@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from .customer import CustomerAPI
 from .conversation import ConversationAPI
 from chats.models import User, Message, agent, conversation_assignment
-from sqlalchemy.sql import select, desc, update, insert, and_
+from sqlalchemy.sql import select, desc, update, insert, and_, asc
 from chats.core import db
 from chats.utils.session_utils import login_required
 from chats.models.agent import AgentStatus
@@ -53,7 +53,7 @@ def get_conversation_messages(conversation_id):
         .select_from(message.join(user))
         .where(message.c.user_id == user.c.id)
         .where(message.c.conversation_id == conversation_id)
-        .order_by(desc(message.c.created_at))
+        .order_by(asc(message.c.created_at))
     )
     results = db.session.execute(query)
     return_value = []
@@ -65,7 +65,7 @@ def get_conversation_messages(conversation_id):
                 "email": result.email,
                 "conversation_id": result.conversation_id,
                 "text": result.text,
-                "status": result.status,
+                "status": result.status.name,
                 "created_at": result.created_at,
             }
         )
@@ -114,6 +114,11 @@ def assign_agent():
             .returning(agent.c.user_id)
         )
         result = db.session.execute(statement)
+        if result.rowcount == 0:
+            return {
+                "success": False,
+                "message": "No agent available at the moment."
+            }
         user_id = next(result).user_id
 
         # add the agent_id to conversation_assignment table.
@@ -128,4 +133,4 @@ def assign_agent():
 
         # commit the transaction.
         db.session.commit()
-        return {"agent_id": user_id, "conversation_assignment_id": assignment_id}, 200
+        return {"success": True, "agent_id": user_id, "conversation_assignment_id": assignment_id}, 200
